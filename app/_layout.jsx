@@ -32,6 +32,10 @@ export default function Layout() {
             />
             <Stack.Screen name="student/dashboard" options={{ title: "Student Dashboard" }} />
             <Stack.Screen name="admin/dashboard" options={{ title: "Teacher Dashboard" }} />
+            <Stack.Screen name="dashboard" options={{ title: "Student Dashboard" }} />
+            <Stack.Screen name="community/CommunityHome" options={{ title: "Community" }} />
+            <Stack.Screen name="community/GroupChat" options={{ title: "Chat" }} />
+            <Stack.Screen name="community/videoMeet" options={{ title: "Video Meet" }} />
         </Stack>
     );
 }
