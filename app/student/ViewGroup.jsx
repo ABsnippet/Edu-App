@@ -1,109 +1,133 @@
+// Edu-App/app/student/ViewGroup.jsx
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, ScrollView } from "react-native";
+import { View, Text, Button, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../../config";
 
 export default function ViewGroup() {
   const [group, setGroup] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const router = useRouter();
+
+  // useLocalSearchParams is compatible with expo-router versions that support it
+  const params = useLocalSearchParams();
+  const routeGroupId = params?.groupId;
 
   useEffect(() => {
-    const fetchGroup = async () => {
+    const loadGroup = async () => {
       try {
-        const email = await AsyncStorage.getItem("userEmail");
-        const res = await axios.get(`${API_URL}/api/groups/my-group/${email}`);
-        setGroup(res.data);
-      } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch group");
-      } finally {
+        // Priority: route param -> AsyncStorage -> fetch from API
+        if (routeGroupId) {
+          setGroup({ id: routeGroupId, name: `Group ${routeGroupId}` });
+          await AsyncStorage.setItem("groupId", routeGroupId);
+          setLoading(false);
+          return;
+        }
+
+        const storedGroupId = await AsyncStorage.getItem("groupId");
+        if (storedGroupId) {
+          setGroup({ id: storedGroupId, name: `Group ${storedGroupId}` });
+          setLoading(false);
+          return;
+        }
+
+        // Fallback: try to fetch the user's group from backend
+        const token = await AsyncStorage.getItem("auth_token");
+        if (token) {
+          const res = await axios.get(`${API_URL}/api/users/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.data && res.data.groupId) {
+            const gid = res.data.groupId;
+            setGroup({ id: gid, name: res.data.groupName || `Group ${gid}` });
+            await AsyncStorage.setItem("groupId", gid);
+            setLoading(false);
+            return;
+          }
+        }
+
+        setGroup(null);
         setLoading(false);
+      } catch (err) {
+        console.log("loadGroup error", err?.message || err);
+        setLoading(false);
+        Alert.alert("Error", "Unable to load group. Try again.");
       }
     };
-    fetchGroup();
-  }, []);
 
-  if (loading)
+    loadGroup();
+  }, [routeGroupId]);
+
+  const openGroupChat = () => {
+    if (!group || !group.id) {
+      Alert.alert("No Group", "No group found for this user.");
+      return;
+    }
+    const roomId = `group_${group.id}`;
+    // if ChatScreen is at app/ChatScreen.jsx
+    router.push({
+      pathname: "/ChatScreen",
+      params: { roomId, roomName: group.name || "Group Chat" },
+    });
+  };
+
+  if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#3f51b5" />
-        <Text>Loading your group...</Text>
+        <ActivityIndicator size="large" />
       </View>
     );
+  }
 
-  if (error)
+  if (!group) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error}</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>You are not assigned to any group yet.</Text>
+        <View style={styles.btnArea}>
+          <Button title="Refresh" onPress={() => router.reload()} />
+        </View>
       </View>
     );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>{group.name}</Text>
-      {group.description ? (
-        <Text style={styles.subtitle}>{group.description}</Text>
-      ) : null}
+      <Text style={styles.subtitle}>Group ID: {group.id}</Text>
 
-      <Text style={styles.sectionTitle}>👥 Group Members:</Text>
-      {group.students.map((student) => (
-        <View key={student._id} style={styles.memberCard}>
-          <Text style={styles.memberName}>{student.name}</Text>
-          <Text style={styles.memberEmail}>{student.email}</Text>
-        </View>
-      ))}
-    </ScrollView>
+      <View style={styles.btnArea}>
+        <Button title="Open Group Chat" color="#2e7d32" onPress={openGroupChat} />
+      </View>
+
+      <View style={styles.btnArea}>
+        <Button title="Back to Dashboard" onPress={() => router.back()} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
   container: {
-    padding: 20,
-    alignItems: "center",
-  },
-  center: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#3f51b5",
-    marginBottom: 10,
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666",
     marginBottom: 20,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 10,
-    alignSelf: "flex-start",
-  },
-  memberCard: {
-    width: "100%",
-    backgroundColor: "#fff",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    elevation: 3,
-  },
-  memberName: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  memberEmail: {
-    fontSize: 14,
-    color: "#666",
-  },
-  error: {
-    color: "red",
-    fontSize: 16,
-    textAlign: "center",
+  btnArea: {
+    marginVertical: 10,
+    width: "80%",
+    alignSelf: "center",
   },
 });

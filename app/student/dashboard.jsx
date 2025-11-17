@@ -8,14 +8,17 @@ import { API_URL } from "../../config";
 export default function Dashboard() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [groupId, setGroupId] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const loadUser = async () => {
       const storedName = await AsyncStorage.getItem("userName");
       const storedEmail = await AsyncStorage.getItem("userEmail");
+      const storedGroup = await AsyncStorage.getItem("groupId"); // <-- store groupId at signup/profile
       if (storedName) setName(storedName);
       if (storedEmail) setEmail(storedEmail);
+      if (storedGroup) setGroupId(storedGroup);
     };
     loadUser();
   }, []);
@@ -32,6 +35,14 @@ export default function Dashboard() {
     }
   };
 
+  const openGroupChat = () => {
+    const rid = groupId ? `group_${groupId}` : "group_main"; // choose a deterministic room id
+    router.push({
+      pathname: "/ChatScreen", // file: app/ChatScreen.jsx
+      params: { roomId: rid, roomName: "Group Chat" },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, {name || "Student"} 👋</Text>
@@ -43,7 +54,10 @@ export default function Dashboard() {
           color="#4CAF50"
           onPress={() => router.push("/student/ViewGroup")}
         />
+      </View>
 
+      <View style={styles.btnContainer}>
+        <Button title="Group Chat" color="#2e7d32" onPress={openGroupChat} />
       </View>
 
       <View style={styles.btnContainer}>
