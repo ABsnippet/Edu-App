@@ -1,41 +1,17 @@
+// app/_layout.jsx
+import React from "react";
 import { Stack } from "expo-router";
 
-export default function Layout() {
-    return (
-        <Stack
-            screenOptions={{
-                headerStyle: { backgroundColor: "#3f51b5" },
-                headerTintColor: "#fff",
-                headerTitleAlign: "center",
-                headerTitleStyle: { fontWeight: "bold" },
-            }}
-        >
-            {/* Define your routes */}
-            <Stack.Screen
-                name="index"
-                options={{
-                    title: "Welcome",
-                    headerShown: false, // Hide header on home page
-                }}
-            />
-            <Stack.Screen
-                name="login"
-                options={{
-                    title: "Login",
-                }}
-            />
-            <Stack.Screen
-                name="signup"
-                options={{
-                    title: "Sign Up",
-                }}
-            />
-            <Stack.Screen name="student/dashboard" options={{ title: "Student Dashboard" }} />
-            <Stack.Screen name="admin/dashboard" options={{ title: "Teacher Dashboard" }} />
-            <Stack.Screen name="dashboard" options={{ title: "Student Dashboard" }} />
-            <Stack.Screen name="community/CommunityHome" options={{ title: "Community" }} />
-            <Stack.Screen name="community/GroupChat" options={{ title: "Chat" }} />
-            <Stack.Screen name="community/videoMeet" options={{ title: "Video Meet" }} />
-        </Stack>
-    );
+export default function RootLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false, // default: hide for most screens
+      }}
+    >
+      {/* Make login show the router header (or any public/auth screens) */}
+      <Stack.Screen name="(auth)/login" options={{ headerShown: true, title: "Login" }} />
+      {/* other routes continue to be auto-discovered */}
+    </Stack>
+  );
 }

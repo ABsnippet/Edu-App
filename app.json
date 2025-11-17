@@ -1,46 +1,60 @@
 {
   "expo": {
-    "scheme":"edu-app",
+    "scheme": "edu-app",
     "name": "Edu-App",
     "slug": "Edu-App",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs to access your camera to update your profile picture.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to choose a profile picture."
+      }
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
-   "plugins": [
-    "expo-router",
-  [
-    "expo-camera",
-    {
-      "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera."
-    }
-  ],
-  [
-    "expo-av",
-    {
-      "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-    }
-  ]
-]
 
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Edu-App to access your camera."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Edu-App to access your microphone."
+        }
+      ],
+      "expo-image-picker"
+    ]
   }
 }
